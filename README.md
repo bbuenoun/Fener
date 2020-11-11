@@ -18,9 +18,8 @@ you for your patience.
 
 By downloading
 and installing this software, you are implicitly agreeing to the
-OpenSource license appended to this README file.  Please read it
-carefully before proceeding -- this is very different from previous
-licenses, and contains fewer restrictions on commercialization.
+OpenSource LICENSE appended to this README file.  Please read it
+carefully before proceeding.
 
 ## Getting started
 
