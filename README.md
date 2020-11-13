@@ -11,12 +11,8 @@ depend at the same time on thermal and daylighting variables. The tool
 can calculate the impact of a complex fenestration system on the 
 daylighting, glare risk, thermal comfort and energy demand of a room. 
 
-Fener is a software copyrighted and distributed by the Fraunhofer 
-Institute for Solar Energy Systems ISE. Fener is becoming OpenSource 
-software. We are working on an alpha version on this repository. Thank
-you for your patience. 
-
-By downloading
+Fener is a OpenSource software copyrighted and distributed by the Fraunhofer 
+Institute for Solar Energy Systems ISE. By downloading
 and installing this software, you are implicitly agreeing to the
 OpenSource LICENSE appended to this README file.  Please read it
 carefully before proceeding.

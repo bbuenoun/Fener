@@ -1,0 +1,57 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module Ztran ! in
+    interface  ! in :Ztran
+        subroutine ztran(esp,con,den,ces,res,ncap,u,aoz,aiz,afz,bz,ncoe,dt) ! in :Ztran:Ztran.f90
+            double precision dimension(ncap) :: esp
+            double precision dimension(ncap) :: con
+            double precision dimension(ncap) :: den
+            double precision dimension(ncap) :: ces
+            double precision dimension(ncap) :: res
+            double precision intent(out) :: u
+            double precision intent(out),dimension(80) :: aoz
+            double precision intent(out),dimension(80) :: aiz
+            double precision intent(out),dimension(80) :: afz
+            double precision intent(out),dimension(80) :: bz
+            integer*2 intent(out) :: ncoe
+            real :: dt
+            integer intent(hide),depend(esp) :: ncap=len(esp)
+        end subroutine ztran
+        subroutine polin(a,b,m,n) ! in :Ztran:Ztran.f90
+            double precision dimension(80) :: a
+            double precision dimension(80) :: b
+            integer*2 :: m
+            integer*2 :: n
+        end subroutine polin
+        subroutine polos(rr,beta,raiz,der,func,m,dt,nraiz,ip) ! in :Ztran:Ztran.f90
+            double precision dimension(20) :: rr
+            double precision dimension(20) :: beta
+            double precision dimension(80) :: raiz
+            double precision dimension(80,4) :: der
+            double precision dimension(80,4) :: func
+            integer*2 :: m
+            real :: dt
+            integer*2 :: nraiz
+            integer*2 dimension(5) :: ip
+        end subroutine polos
+        subroutine matri(rr,beta,w,m,f,ff,icont) ! in :Ztran:Ztran.f90
+            double precision dimension(20) :: rr
+            double precision dimension(20) :: beta
+            double precision :: w
+            integer*2 :: m
+            double precision dimension(2,2) :: f
+            double precision dimension(2,2) :: ff
+            integer*2 :: icont
+        end subroutine matri
+        subroutine orige(rr,beta,m,mp) ! in :Ztran:Ztran.f90
+            double precision dimension(20) :: rr
+            double precision dimension(20) :: beta
+            integer*2 :: m
+            double precision dimension(2,2) :: mp
+        end subroutine orige
+    end interface
+end python module Ztran
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/
