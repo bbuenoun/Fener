@@ -20,6 +20,8 @@ def parse(config_path, options):
     _add_matrix_control_variables(parser, config, options)
     _add_shading_control_variables(parser, config, options)
     _add_klems_variables(parser, config, options, config.numConWin)
+    _add_calorim_variables(parser, config, options, config.numConWin)
+    _add_ep_variables(parser, config, options, config.numConWin)
     return config
 
 
@@ -46,10 +48,10 @@ def _add_geometry_variables(parser, config, options):
     config.output_path = parser.get("PATHS", "output")
     config.input_path = parser.get("PATHS", "input")
     config.workDir_path = parser.get("PATHS", "workDir")
-    if options.shoeBox or options.geo:
+    if options.shoeBox or options.geo or options.ep:
         config.height = parser.getfloat("VARIABLES", "height")
         config.rotAng = parser.getfloat("VARIABLES", "rotAng")
-    if options.shoeBox:
+    if options.shoeBox or options.ep:
         config.length = parser.getfloat("VARIABLES", "length")
         config.width = parser.getfloat("VARIABLES", "width")
         config.thickSouth = parser.getfloat("VARIABLES", "thickSouth")
@@ -76,7 +78,7 @@ def _add_geometry_variables(parser, config, options):
 
 
 def _add_lighting_schedule_variables(parser, config, options):
-    if options.lightSch or options.therm:
+    if options.lightSch or options.therm or options.ep:
         config.lightSch_path = parser.get("PATHS", "lightSch")
         config.powerLight = parser.getfloat("VARIABLES", "powerLight")
     if options.lightSch:
@@ -90,12 +92,20 @@ def _add_daylighting_variables(parser, config, options, numConWin):
         or options.rad == "radBsdf"
         or options.rad == "radTpm"
         or options.therm
+        or options.ep
+        or options.calorim
         or options.glare
         or options.glareSimpl
+        or options.glareMulti
+        or options.fpm
     ):
         config.bsdfSys_path = ndarray((numConWin,), dtype=object)
         for i in range(numConWin):
             config.bsdfSys_path[i] = parser.get("PATHS", "bsdfSys_%i" % i)
+        if options.fpm:
+            config.tensorTree_path = ndarray((numConWin,), dtype=object)
+            for i in range(numConWin):
+                config.tensorTree_path[i] = parser.get("PATHS", "tensorTree_%i" % i)
     if options.daylight or options.df or options.rad == "radTpm":
         if options.grid:
             config.numPhotosensX = parser.getint("VARIABLES", "numPhotosensX")
@@ -118,16 +128,16 @@ def _add_daylighting_variables(parser, config, options, numConWin):
 
 
 def _add_glare_variables(parser, config, options, numConWin):
-    if options.glare or options.glareSimpl or options.glareFull:
+    if options.glare or options.glareSimpl or options.glareFull or options.glareMulti:
         config.illuVertPts_path = parser.get("PATHS", "illuVertPts")
-    if options.glare or options.glareFull:
+    if options.glare or options.glareFull or options.glareMulti:
         config.winRad_path = ndarray((numConWin,), dtype=object)
         for i in range(numConWin):
             config.winRad_path[i] = parser.get("PATHS", "winRad_%i" % i)
 
 
 def _add_thermal_variables(parser, config, options, numConWin):
-    if options.therm:
+    if options.therm or options.ep or options.iso:
         config.matOpaq_path = parser.get("PATHS", "matOpaq")
         config.constOpaq_path = parser.get("PATHS", "constOpaq")
         config.infSch_path = parser.get("PATHS", "infSch")
@@ -215,3 +225,37 @@ def _add_klems_variables(parser, config, options, numConWin):
                     "PATHS", "absBack_%i_%i" % (i, j)
                 )
 
+
+def _add_calorim_variables(parser, config, options, numConWin):
+    if options.calorim:
+        config.calorim_path = ndarray((numConWin,), dtype=object)
+        for i in range(numConWin):
+            config.calorim_path[i] = parser.get("PATHS", "calorim_%i" % i)
+
+
+def _add_ep_variables(parser, config, options, numConWin):
+    if options.ep or options.iso or options.calorim:
+        config.matGlz_path = parser.get("PATHS", "matGlz")
+        config.constWin_path = parser.get("PATHS", "constWin")
+        config.matGas_path = parser.get("PATHS", "matGas")
+        config.matBSDF_path = parser.get("PATHS", "matBSDF")
+        config.numPanes = parser.getint("VARIABLES", "numPanes")
+        config.absFront_path = ndarray([numConWin, config.numPanes], dtype=object)
+        config.absBack_path = ndarray([numConWin, config.numPanes], dtype=object)
+        for i in range(numConWin):
+            for j in range(config.numPanes):
+                config.absFront_path[i, j] = parser.get(
+                    "PATHS", "absFront_%i_%i" % (i, j)
+                )
+                config.absBack_path[i, j] = parser.get(
+                    "PATHS", "absBack_%i_%i" % (i, j)
+                )
+    if options.ep:
+        config.ep_path = parser.get("PATHS", "ep")
+        config.frameWidth = parser.getfloat("VARIABLES", "frameWidth")
+    if options.iso:
+        config.stj_type = parser.getfloat("VARIABLES", "stj_type")
+        config.stjTfluidIn = parser.getfloat("VARIABLES", "stjTfluidIn")
+        config.stjAref = parser.getfloat("VARIABLES", "stjAref")
+        config.stjMassFlow = parser.getfloat("VARIABLES", "stjMassFlow")
+        config.stjFluidCp = parser.getfloat("VARIABLES", "stjFluidCp")
