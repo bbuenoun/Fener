@@ -50,6 +50,18 @@ def _add_common_arguments(parser):
         "-display", action="store_true", default=False, help="displays the geometry"
     )
     parser.add_argument(
+        "-tpmMtx",
+        action="store_true",
+        default=False,
+        help="generates three-phase method matrices (internal use only)",
+    )
+    parser.add_argument(
+        "-fpm",
+        action="store_true",
+        default=False,
+        help="generate five-phase method horizontal and vertical annual illuminance (`illFive.out` and `illFiveVert.out`) and images (`imagesFive/*.hdr`)",
+    )
+    parser.add_argument(
         "-daylight",
         action="store_true",
         default=False,
@@ -74,6 +86,12 @@ def _add_common_arguments(parser):
         help="runs glare simulations based on the Simplified method",
     )
     parser.add_argument(
+        "-glareMulti",
+        action="store_true",
+        default=False,
+        help="runs multicore glare simulations based on the Enhanced Simplified Method",
+    )
+    parser.add_argument(
         "-glareFull",
         action="store_true",
         default=False,
@@ -87,6 +105,19 @@ def _add_common_arguments(parser):
         action="store_true",
         default=False,
         help="runs thermal comfort simulation",
+    )
+    # ~ parser.add_argument("-thermfd", action="store_true", default=False, help="runs thermal simulation with finite differences for opaque walls")
+    parser.add_argument(
+        "-ep",
+        action="store_true",
+        default=False,
+        help="generates an EnergyPlus idf and runs it. ATTENTION some limitations apply (check the manual)",
+    )
+    parser.add_argument(
+        "-iso",
+        action="store_true",
+        default=False,
+        help="runs a thermal calculation indluding a solar thermal yield model. The heat transfer through the window is solved according to the ISO 15099. ATTENTION some limitations apply (check the code)",
     )
     parser.add_argument(
         "-cutOff",
@@ -137,6 +168,12 @@ def _add_common_arguments(parser):
         help="generates a BSDF of a fenestration system from BSDF of the individual layers. For glazing and diffusive layers (shades), the model calculates the BSDF internally",
     )
     parser.add_argument(
+        "-calorim",
+        action="store_true",
+        default=False,
+        help="generates a calorimetric file of a fenestration system from the properties of the individual layers.",
+    )
+    parser.add_argument(
         "-mask", action="store_true", default=False, help="generates a obstruction mask"
     )
     parser.add_argument(
@@ -144,6 +181,12 @@ def _add_common_arguments(parser):
         action="store_true",
         default=False,
         help="generates an outdoor scene",
+    )
+    parser.add_argument(
+        "-cie",
+        action="store_true",
+        default=False,
+        help="uses the CIE standard sky distribution instead of the Perez model ATTENTION: no luminous efficacy model. Use for comparison purposes only",
     )
 
 
