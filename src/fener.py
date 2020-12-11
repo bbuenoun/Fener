@@ -1,5 +1,13 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""Fener evaluates the thermal, daylighting and glare performance of complex fenestration systems in office spaces.
+
+Fener uses the Radiance-based three-phase method and bi-directional scattering distribution functions (BSDF) to make irradiance and illuminance calculations. Glare analysis is performed based on the Simplified DGP and Enhanced Simplified DGP methods (the latter is only implemented at developer level). Thermal calculations are carried out according to the Kuhn2011 model for the heat transfer through the window, which additionally requires a U-value and Directional Solar Heat Coefficients (DSHGC) as the thermal characterization of a fenestration system. Transfer functions and the energy balance method make it possible to calculate indoor air temperature and energy loads. Some auxiliary programs are also available to calculate BSDF and DSHGC for simplified composed of a shading device and a glazing unit. Fener is also able to generate an input data file for EnergyPlus and run it, using the results of the daylighting calculation. 
+
+  Typical usage example:
+
+  python3 ./src/fener.py {directory_path}/config.fnr -c 10 -geo -shoeBox -daylight -grid -lightSch -therm -thermComf -glareSimpl
+  python3 ./src/fener.py {directory_path}/config.fnr -daylight -grid -lightSch -therm -thermComf -glareSimpl
+
+"""
 
 from __future__ import division
 from __future__ import print_function
@@ -174,15 +182,19 @@ def main(opts, config):
             config.conCeiling,
             config.conFloor,
         )
-    surfVect = atleast_2d(genfromtxt(config.surf_path, skip_header=1, delimiter=","))
-    winVect = atleast_2d(genfromtxt(config.win_path, skip_header=1, delimiter=","))
-    frameVect = atleast_2d(genfromtxt(config.frame_path, skip_header=1, delimiter=","))
+    surfVect = atleast_2d(genfromtxt(
+        config.surf_path, skip_header=1, delimiter=","))
+    winVect = atleast_2d(genfromtxt(
+        config.win_path, skip_header=1, delimiter=","))
+    frameVect = atleast_2d(genfromtxt(
+        config.frame_path, skip_header=1, delimiter=","))
     numWin = winVect.shape[0]
     numFrame = frameVect.shape[0]
     numSurf = surfVect.shape[0]
     # ----------------------------------------------------
     if opts.mask:
-        obstMask = genfromtxt(config.obstMask_path, skip_header=1, delimiter=",")
+        obstMask = genfromtxt(config.obstMask_path,
+                              skip_header=1, delimiter=",")
     # ----------------------------------------------------
     if opts.lightSch or opts.therm or opts.ep:
         lightSchYear = genfromtxt(config.lightSch_path, delimiter=",")
@@ -467,7 +479,8 @@ def main(opts, config):
             )
         elif opts.outside:
             ioRoutines.shell(
-                "cp -f %s %soutside.rad" % (config.outside_path, config.workDir_path)
+                "cp -f %s %soutside.rad" % (config.outside_path,
+                                            config.workDir_path)
             )
         else:
             open("%soutside.rad" % config.workDir_path, "a").close()
@@ -544,7 +557,8 @@ def main(opts, config):
             else:
                 geometry.viewfactors(opts.c, config.workDir_path)
         elif opts.daylight:
-            geometry.winSensorPts(p.irrResWin, surf, frame, win, config.workDir_path)
+            geometry.winSensorPts(p.irrResWin, surf, frame,
+                                  win, config.workDir_path)
     # ----------------------------------------------------
     if opts.geo or opts.tpmMtx:
         print("Building three-phase method matrices...")
@@ -564,48 +578,49 @@ def main(opts, config):
         if opts.glare or opts.glareSimpl or opts.glareMulti:
             genMtx.glareView(opts.c, numWin, config.workDir_path)
         if opts.therm:
-            genMtx.irrView(opts.c, numWin, numFrame, numSurf, config.workDir_path)
+            genMtx.irrView(opts.c, numWin, numFrame,
+                           numSurf, config.workDir_path)
             genMtx.ext(opts.c, numSurf, numFrame, bc, config.workDir_path)
         elif opts.daylight:
             genMtx.irrWinBackView(opts.c, numWin, config.workDir_path)
     # ----------------------------------------------------
-    #if opts.fpm:
-        #print(
+    # if opts.fpm:
+        # print(
             #"Generate five-phase method horizontal and vertical annual illuminance (`illFive.out` and `illFiveVert.out`) and images (`imagesFive/*.hdr`)"
-        #)
-        ## NOTE hdr-files can be displayed using the command `ximage ...hdr`.
-        ## TODO There is a command `bsdf2ttree` but not the other way around. Shall we use it to generate the tensor tree?
+        # )
+        # NOTE hdr-files can be displayed using the command `ximage ...hdr`.
+        # TODO There is a command `bsdf2ttree` but not the other way around. Shall we use it to generate the tensor tree?
         #i = 0
-        #parameters = {
-            #"bsdf_xml_path": config.bsdfSys_path[i],
-            #"glazing_aperture_geometry_material_name": "win_mat",
-            #"materialless_glazing_aperture_geometry_path": "{path}window_{index}.rad".format(
-                #path=config.workDir_path, index=i
-            #),
-            #"outside_scene_path": "{path}sky.rad".format(path=config.workDir_path),
-            #"room_material_path": "{path}room.mat".format(path=config.workDir_path),
-            #"room_scene_path": "{path}room.rad".format(path=config.workDir_path),
-            #"tensor_tree_path": config.tensorTree_path[i],
-            #"typical_meteorological_year_weather_path": genMtx.weather_sky_path(
-                #config.meteo_path
-            #),
-            #"view_path": "{path}view.vf".format(
-                #path=config.input_path
-            #),  # This file is generated by `geometry.py#genViewFile`
-        #}
-        #five_phase_method.compute_annual_illuminance(
-            #points_path=config.illuPts_path,
-            #output_path="{path}illFive.out".format(path=config.output_path),
-            #**parameters,
-        #)
-        #five_phase_method.compute(
-            #points_path=config.illuVertPts_path,
-            #images_output_path="{path}imagesFive".format(path=config.output_path),
-            #annual_illuminance_output_path="{path}illFiveVert.out".format(
-                #path=config.output_path
-            #),
-            #**parameters,
-        #)
+        # parameters = {
+            # "bsdf_xml_path": config.bsdfSys_path[i],
+            # "glazing_aperture_geometry_material_name": "win_mat",
+            # "materialless_glazing_aperture_geometry_path": "{path}window_{index}.rad".format(
+            #path=config.workDir_path, index=i
+            # ),
+            # "outside_scene_path": "{path}sky.rad".format(path=config.workDir_path),
+            # "room_material_path": "{path}room.mat".format(path=config.workDir_path),
+            # "room_scene_path": "{path}room.rad".format(path=config.workDir_path),
+            # "tensor_tree_path": config.tensorTree_path[i],
+            # "typical_meteorological_year_weather_path": genMtx.weather_sky_path(
+            # config.meteo_path
+            # ),
+            # "view_path": "{path}view.vf".format(
+            # path=config.input_path
+            # ),  # This file is generated by `geometry.py#genViewFile`
+        # }
+        # five_phase_method.compute_annual_illuminance(
+            # points_path=config.illuPts_path,
+            # output_path="{path}illFive.out".format(path=config.output_path),
+            # **parameters,
+        # )
+        # five_phase_method.compute(
+            # points_path=config.illuVertPts_path,
+            # images_output_path="{path}imagesFive".format(path=config.output_path),
+            # annual_illuminance_output_path="{path}illFiveVert.out".format(
+            # path=config.output_path
+            # ),
+            # **parameters,
+        # )
     # ----------------------------------------------------
     # read matrices
     if (
@@ -636,10 +651,12 @@ def main(opts, config):
         illExtDmx = variables.dmxExt(config.workDir_path)
     if opts.glare or opts.glareSimpl or opts.glareFull or opts.glareMulti:
         illuVertPts = atleast_2d(
-            genfromtxt("%silluVertSensor.pts" % config.workDir_path, delimiter=" ")
+            genfromtxt("%silluVertSensor.pts" %
+                       config.workDir_path, delimiter=" ")
         )
         numSensorVert = illuVertPts.shape[0]
-        illVertVmx = variables.vmxGlare(numWin, numSensorVert, config.workDir_path)
+        illVertVmx = variables.vmxGlare(
+            numWin, numSensorVert, config.workDir_path)
     else:
         numSensorVert = 0
     if opts.therm:
@@ -680,7 +697,8 @@ def main(opts, config):
             config.workDir_path,
         )
     elif opts.daylight:
-        irrWinBackVmx, numSensorWin = variables.winBack(numWin, config.workDir_path)
+        irrWinBackVmx, numSensorWin = variables.winBack(
+            numWin, config.workDir_path)
     # ----------------------------------------------------
     # initialize outputs
     if opts.daylight or opts.df or opts.mtxCntrl or opts.refeedCntrl:
@@ -735,7 +753,7 @@ def main(opts, config):
         effGValue = zeros([numWin, totHour])
     if opts.iso:
         irrWinLay = zeros([numWin, max(numPaneConWin), totHour])
-        stjHeatFlux = zeros([numWin,totHour])
+        stjHeatFlux = zeros([numWin, totHour])
         stjHeatFluxTemp = zeros(numWin)
         delta_t_m_f = zeros([numWin])
         stjTmeanTemp_1 = config.stjTfluidIn*ones([numWin])
@@ -752,7 +770,7 @@ def main(opts, config):
         tempOut24 = ones(int(totHour / 24)) * tempOutAir[0]
         tempOut24temp = 0.0
         itd = 0
-    if opts.optStateCntrl: 
+    if opts.optStateCntrl:
         spHorIllu = 1000
         spVerIllu = 2000
     # ----------------------------------------------------
@@ -801,7 +819,8 @@ def main(opts, config):
     if opts.glareMulti:
         point = 0
         dgpF = defaultdict(list)
-        geometry.winRad(numWin, config.workDir_path, config.input_path, conIndex[:, 0])
+        geometry.winRad(numWin, config.workDir_path,
+                        config.input_path, conIndex[:, 0])
     # ----------------------------------------------------
     # daylight hour counter
     dh = 0
@@ -839,7 +858,8 @@ def main(opts, config):
             # exterior radiation on "south facade"
             if sunAltitude[it] > 0.0:
                 irrSurfExtSouth = solar.irrFadExt(
-                    numSurf, numSensorSurf, irrSurfExtDmx, transpose(solSmx[dh, :]), bc
+                    numSurf, numSensorSurf, irrSurfExtDmx, transpose(
+                        solSmx[dh, :]), bc
                 )[1]
             else:
                 irrSurfExtSouth = 0.0
@@ -944,12 +964,12 @@ def main(opts, config):
                     incAng,
                     profAng,
                     conIndex[:, it-1],
-                    config.numConWin, 
-                    illVmx, 
+                    config.numConWin,
+                    illVmx,
                     illVertVmx,
-                    tmxv, 
-                    dmx, 
-                    transpose(visSmx[dh, :]), 
+                    tmxv,
+                    dmx,
+                    transpose(visSmx[dh, :]),
                     numWin,
                     spHorIllu,
                     spVerIllu,
@@ -958,7 +978,7 @@ def main(opts, config):
                     config.numWinLowerPartition,
                     config.numWinUpperPartition,
                     config.cntrlOpt
-                    )
+                )
         # --------------------------------------------------------
         # cut-off control algorithm
         else:
@@ -1181,7 +1201,8 @@ def main(opts, config):
                     numWin, win, dmx, transpose(skySol)
                 )
                 effGValue[:, it] = solar.effGVal(
-                    numWin, win, dmx, transpose(skySol), calorim, conIndex[:, it]
+                    numWin, win, dmx, transpose(
+                        skySol), calorim, conIndex[:, it]
                 )
             if opts.iso:
                 irrWinLay[:, :, it] = solar.isoWinAbs(
@@ -1215,11 +1236,11 @@ def main(opts, config):
         # lighting power calculation
         if opts.lightSch:
             lightSch[it], lightCons[it] = solar.lightCntrl(
-                 lightCntrl,
-                 lightSch[it],
-                 config.floorArea,
-                 config.powerLight,
-                 ill[:, it],
+                lightCntrl,
+                lightSch[it],
+                config.floorArea,
+                config.powerLight,
+                ill[:, it],
             )
             lightSchYear[iniHour + it] = lightSch[it]
         elif opts.therm:
@@ -1232,7 +1253,8 @@ def main(opts, config):
                 for i in range(numWin):
                     if opts.iso:
                         win[i].iso(
-                            conWinVect[conIndex[i, it], :], matGas, matGlz, matBSDF
+                            conWinVect[conIndex[i, it],
+                                       :], matGas, matGlz, matBSDF
                         )
                     win[i].kuhn11(
                         tmxs[conIndex[i, it], :, :],
@@ -1347,7 +1369,8 @@ def main(opts, config):
                 if opts.iso:
                     # remove yield from absorbed radiation
                     for i in range(numWin):
-                        irrWinLay[i, 1, it] = irrWinLay[i, 1, it] -  stjHeatFluxTemp[i]
+                        irrWinLay[i, 1, it] = irrWinLay[i,
+                                                        1, it] - stjHeatFluxTemp[i]
                     # run iso
                     win = iso.compute(
                         win,
@@ -1365,7 +1388,7 @@ def main(opts, config):
                     )
                     # calculate STJ heatflux
                     for i in range(numWin):
-                        stjHeatFlux[i,it],stjT_mean_f[i] = stj.solveStj(
+                        stjHeatFlux[i, it], stjT_mean_f[i] = stj.solveStj(
                             config.stj_type,
                             config.stjTfluidIn,
                             config.stjAref,
@@ -1377,9 +1400,9 @@ def main(opts, config):
                             config.stjFluidCp,
                             delta_t_m_f[i],
                         )
-                        stjTmeanTemp_2 [i] = stjTmeanTemp_1 [i]
-                        stjTmeanTemp_1 [i] = stjT_mean_f[i]
-                        delta_t_m_f [i] = stjTmeanTemp_1[i]-stjTmeanTemp_2[i]
+                        stjTmeanTemp_2[i] = stjTmeanTemp_1[i]
+                        stjTmeanTemp_1[i] = stjT_mean_f[i]
+                        delta_t_m_f[i] = stjTmeanTemp_1[i]-stjTmeanTemp_2[i]
                 # Thermal comfort calculations
                 if opts.thermComf:
                     RHInTemp = thermalComfort.latEnergyBalance(
@@ -1402,14 +1425,15 @@ def main(opts, config):
             tempSurfInt[:, it] = fromiter((c.intTemp for c in surf), float)
             tempSurfExt[:, it] = fromiter((c.extTemp for c in surf), float)
             if opts.iso:
-                stjHeatFluxTemp[:] = stjHeatFlux[:,it]
+                stjHeatFluxTemp[:] = stjHeatFlux[:, it]
             # -----------------------------------------------------
             # thermal comfort simulation PMV and PPD: ISO7730
             if opts.thermComf:
                 RHIn[it] = RHInTemp
                 # Ponderated surface temperatures windows/opaque
                 tWalls[:, it] = thermalComfort.winAreas(
-                    winVect, frameVect, surfVect, tempWinInt[:, it], tempSurfInt[:, it]
+                    winVect, frameVect, surfVect, tempWinInt[:,
+                                                             it], tempSurfInt[:, it]
                 )
                 # Mean radiant temperature for every occupant position (5 positions)
                 tRad[:, it] = thermalComfort.tempRadSimp(

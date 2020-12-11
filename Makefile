@@ -1,7 +1,7 @@
 # Concise introduction to GNU Make:
 # https://swcarpentry.github.io/make-novice/reference.html
 
-name = glare-trace
+name = fener
 
 # Taken from https://www.client9.com/self-documenting-makefiles/
 help : ## Print this help
@@ -75,7 +75,7 @@ types : ## Type check the code
 .PHONY : types
 
 lint : ## Lint the code
-	pylint ./glare ./docs ./tests
+	pylint ./src ./docs ./tests
 .PHONY : lint
 
 dead : ## Find dead code
