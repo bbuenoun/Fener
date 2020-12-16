@@ -47,7 +47,7 @@ run : build ## Run command `${COMMAND}` in fresh container, for example, `make C
 		--mount type=bind,source=${xsock},target=${xsock},readonly=false \
 		--mount type=bind,source=${xauth},target=${xauth},readonly=false \
 		${name} \
-		bash -c "${COMMAND}"
+		bash -c "cp /home/me/Ztran.*.so ./src/ && exec ${COMMAND}"
 .PHONY : run
 
 shell : COMMAND = bash
