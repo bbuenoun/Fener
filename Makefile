@@ -1,7 +1,7 @@
 # Concise introduction to GNU Make:
 # https://swcarpentry.github.io/make-novice/reference.html
 
-name = glare-trace
+name = fener
 
 # Taken from https://www.client9.com/self-documenting-makefiles/
 help : ## Print this help
@@ -47,7 +47,7 @@ run : build ## Run command `${COMMAND}` in fresh container, for example, `make C
 		--mount type=bind,source=${xsock},target=${xsock},readonly=false \
 		--mount type=bind,source=${xauth},target=${xauth},readonly=false \
 		${name} \
-		bash -c "${COMMAND}"
+		bash -c "cp /home/me/Ztran.*.so ./src/ && exec ${COMMAND}"
 .PHONY : run
 
 shell : COMMAND = bash
@@ -75,7 +75,7 @@ types : ## Type check the code
 .PHONY : types
 
 lint : ## Lint the code
-	pylint ./glare ./docs ./tests
+	pylint ./src ./docs ./tests
 .PHONY : lint
 
 dead : ## Find dead code

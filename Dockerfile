@@ -128,6 +128,9 @@ ENV RAYPATH=/usr/local/radiance/lib/:$RAYPATH
 #------------------------#
 # * Python is an interpreted, high-level, general-purpose programming language,
 #   see https://www.python.org
+# * Cython is an optimising static compiler for both the Python programming
+#   language and the extended Cython programming language and it makes writing
+#   C extensions for Python as easy as Python itself, see https://cython.org/
 # * pip is a Python package installer, see https://pip.pypa.io
 RUN \
   # Retrieve new lists of packages
@@ -135,10 +138,14 @@ RUN \
   # Install Fener's run-time system dependencies and pip
   apt-get install --assume-yes --no-install-recommends \
     python3 \
+    cython3 \
+    graphviz \
     python3-pip && \
   # Make the commands `python` and `pip` refer to `*3`
   ln --symbolic \
     /usr/bin/python3 /usr/bin/python && \
+  ln --symbolic \
+    /usr/bin/cython3 /usr/bin/cython && \
   ln --symbolic \
     pip3 /usr/bin/pip && \
   # Remove unused packages, erase archive files, and remove lists of packages
@@ -149,7 +156,12 @@ RUN \
 #---------------------------#
 # Install development tools #
 #---------------------------#
+# * gfortran is the GNU Fortran compiler, which is needed by `f2py`, which is
+#   part of `numpy`, see https://gcc.gnu.org/wiki/GFortran,
+#   https://docs.scipy.org/doc/numpy/f2py, and https://numpy.org
 # * GNU Make as task executor, see https://www.gnu.org/software/make/
+# * python3-dev contains header files and a static library for Python; it is
+#   needed to build C Python extensions
 # * Black as Python code formatter, see https://github.com/psf/black
 # * Mypy as static type checker for Python, see http://mypy-lang.org
 # * Pylint as bug and quality checker for Python, see https://www.pylint.org
@@ -165,7 +177,9 @@ RUN \
     setuptools && \
   # Install system development tools
   apt-get install --assume-yes --no-install-recommends \
-    make && \
+    gfortran \
+    make \
+    python3-dev && \
   # Install Python development tools
   pip install --no-cache-dir \
     black \
@@ -210,6 +224,21 @@ RUN \
     --user \
     --no-cache-dir \
     -r requirements.txt
+
+#-----------------------------------#
+# Make `Ztran` usable within Python #
+#-----------------------------------#
+# Generate the file `/home/me/Ztran.*.so`, which is moved into `/app/src`, that
+# is, the mounted project folder, before we drop into a shell inside a new
+# container, see the task `run` in the `Makefile`.
+COPY --chown=me:us \
+  ./src/Ztran.f90 ./src/
+COPY --chown=me:us \
+  ./src/Ztran.pyf ./src/
+# RUN f2py -h ./src/Ztran.pyf -m Ztran ./src/Ztran.f90 && \
+RUN \
+  f2py -c ./src/Ztran.pyf ./src/Ztran.f90 && \
+  mv ./Ztran.*.so ~
 
 #---------------------------------------#
 # Set-up containers based on this image #
