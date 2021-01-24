@@ -1,0 +1,2 @@
+Illuminance control sensor {0-photosensor closest to south-west corner,1-next to east,etc.}, Fraction of area controlled, Illuminance setpoint (lux), Control {0-continuous dimming control,1-stepped control},Control parameter {Control0-minimum light output fraction,Control1-num steps}
+10, 1.0, 300., 1, 1        

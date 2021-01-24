@@ -1,0 +1,205 @@
+# configuration file for full fener simulation
+
+[PATHS]
+meteo = tests/test_fener/test_integration/test_simple/input/Franhour.epw
+
+input = tests/test_fener/test_integration/test_simple/input/
+output = tests/test_fener/test_integration/test_simple/actual_output/201/
+workDir = tests/test_fener/test_integration/test_simple/workDir/201/
+
+matOpaq = tests/test_fener/test_integration/test_simple/input/matOpaque2.dat
+constOpaq = tests/test_fener/test_integration/test_simple/input/constOpaq_heavy.dat
+surf = tests/test_fener/test_integration/test_simple/input/surfaces_200.dat
+win = tests/test_fener/test_integration/test_simple/input/windows.dat
+frame = tests/test_fener/test_integration/test_simple/input/frames.dat
+
+bsdfSys_0 = tests/test_fener/test_integration/test_simple/input/DoubleGlazing.xml
+
+# --------------------------------------
+# variables for glare
+# --------------------------------------
+illuVertPts = tests/test_fener/test_integration/test_simple/input/illuVertSensor.pts
+winRad_0 = tests/test_fener/test_integration/test_simple/input/winRad_0.mat
+
+# --------------------------------------
+# variables for lightSch
+# --------------------------------------
+
+lightCntrl = tests/test_fener/test_integration/test_simple/input/lightControl.dat
+
+# --------------------------------------
+# variables for therm and lightSch
+# --------------------------------------
+
+lightSch = tests/test_fener/test_integration/test_simple/input/occupation.dat
+
+# --------------------------------------
+# variables for therm
+# --------------------------------------
+
+calorim_0 = tests/test_fener/test_integration/test_simple/input/matCalorimRoos.dat
+infSch = tests/test_fener/test_integration/test_simple/input/infiltration.dat
+occSch = tests/test_fener/test_integration/test_simple/input/occupation.dat
+equipSch = tests/test_fener/test_integration/test_simple/input/occupation.dat
+heatSpSch = tests/test_fener/test_integration/test_simple/input/heatSetpoint.dat
+coolSpSch = tests/test_fener/test_integration/test_simple/input/coolSetpoint.dat
+
+# --------------------------------------
+# variables for Klems and EnergyPlus and iso
+# --------------------------------------
+ep = output/valid/201/ep/
+matGlz = tests/test_fener/test_integration/test_simple/input/matGlazing.dat
+matGas = tests/test_fener/test_integration/test_simple/input/matGas.dat
+matBSDF = tests/test_fener/test_integration/test_simple/input/matBSDF.dat
+constWin = tests/test_fener/test_integration/test_simple/input/constWin.dat
+absFront_0_0 = tests/test_fener/test_integration/test_simple/input/absFront_0_0.vct
+absFront_0_1 = tests/test_fener/test_integration/test_simple/input/absFront_0_1.vct
+absBack_0_0 = tests/test_fener/test_integration/test_simple/input/absBack_0_0.vct
+absBack_0_1 = tests/test_fener/test_integration/test_simple/input/absBack_0_1.vct
+
+
+
+[VARIABLES]
+# Site latitude is degrees north (use negative angle for south latitude).
+lat = 50.10
+# Site longitude is degrees west (use negative angle for east longitude).        
+lon = -8.68
+# The site standard meridian is degrees west of Greenwich (use negative angle for east).      
+tzone = -15.00
+# Begin Month           
+iniMonth = 7
+# Begin Day of Month           
+iniDay = 23
+# End Month         
+endMonth = 7
+# End Day of Month             
+endDay = 23
+# Day of Week for first of January {1-Monday, 2-Tuesday}          
+iniDayWeek = 1 
+
+# Room volume {m3}
+volume = 60.0
+# Floor area {m2}
+floorArea = 20.0
+
+# floor surface {id of the surface considered to be the floor, 0-first}
+floor = 0
+# ground albedo
+grndAlb = 0.2
+# number of window construction
+numConWin = 1
+
+# --------------------------------------
+# variables for lightSch, therm and energyplus
+# --------------------------------------
+
+# Lights Watts per Zone Floor Area {W/m2}           
+powerLight = 2.0
+
+# --------------------------------------
+# variables for therm and energyplus
+# --------------------------------------
+
+# Infiltration/ventilation {ACH}            
+airExch = 2.0
+# Initial temperature (K)             
+iniTemp = 293.0
+# cooling system COP       
+cop = 2.5
+# Equipment Watts per Zone Floor Area {W/m2}                
+powerEquip = 5.0
+# Equipment Fraction Radiant                
+radFracEquip = 0.0
+# People Watts per Zone Floor Area {W/m2}               
+powerPeople = 5.0
+# People Fraction Radiant          
+radFracPeople = 0.5
+# Lights Fraction Radiant         
+radFracLight = 0.72
+
+
+# --------------------------------------
+# variables to build a grid
+# --------------------------------------
+# grid of photosensors: number of sensors along the length of the floor surface
+numPhotosensX = 20
+# grid of photosensors: number of sensors along the width of the floor surface
+numPhotosensY = 40
+# grid of photosensors: height of sensors
+photosensHeight = 0.8
+# X-offset for photosensor grid (distance from the inner surface of east and west walls)
+gridXOffset = 0.5
+# Y-offset for photosensor grid (distance from the inner surface of south and north walls)
+gridYOffset = 0.5
+
+# --------------------------------------
+# variables for Daylight Autonomy
+# --------------------------------------
+startHour = 8
+endHour = 18
+minIllum = 300
+
+# --------------------------------------
+# variables to build a shoe-box geometry and for EnergyPlus
+# --------------------------------------
+# Building orientation (relative to true north {deg}, clockwise is negative)
+rotAng = 0.
+# Zone length (East-West Axis {m}) (outer perimeter)                 
+length = 4.3
+# Zone width (North-South Axis {m}) (outer perimeter)                
+width = 5.3
+# Ceiling Height {m}               
+height = 3.3
+# Thickness southWall {m} 
+thickSouth = 0.15
+# Thickness eastWall {m} 
+thickEast = 0.15 
+# Thickness northWall {m} 
+thickNorth = 0.15 
+# Thickness westWall {m} 
+thickWest = 0.15 
+# Thickness ceiling {m} 
+thickCeiling = 0.15 
+# Thickness floor {m} 
+thickFloor = 0.15      
+# Wall albedo
+albWall = 0.5
+# Ceiling albedo
+albCeiling = 0.5
+# Floor albedo
+albFloor = 0.5
+# Boundary condition southWall {0-interior,1-exterior} 
+bcSouth = 1
+# Boundary condition eastWall {0-interior,1-exterior}
+bcEast = 0
+# Boundary condition northWall {0-interior,1-exterior}
+bcNorth = 0
+# Boundary condition westWall {0-interior,1-exterior}
+bcWest = 0
+# Boundary condition ceiling {0-interior,1-exterior}
+bcCeiling = 0
+# Boundary condition floor {0-interior,1-exterior}
+bcFloor = 0
+# Construction ID southWall (see constOpaq.dat)
+conSouth = 0
+# Construction ID eastWall (see constOpaq.dat)
+conEast = 2
+# Construction ID northWall (see constOpaq.dat)
+conNorth = 2
+# Construction ID westWall (see constOpaq.dat)
+conWest = 2
+# Construction ID ceiling (see constOpaq.dat)
+conCeiling = 1
+# Construction ID floor (see constOpaq.dat)
+conFloor = 1
+
+# --------------------------------------
+# variables for EnergyPlus and iso
+# --------------------------------------
+# number of window panes
+numPanes = 2
+
+# --------------------------------------
+# variables for EnergyPlus
+# --------------------------------------
+frameWidth = 0.05
