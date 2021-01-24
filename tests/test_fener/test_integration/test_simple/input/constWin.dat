@@ -1,0 +1,2 @@
+numLayer_excluding gaps, extMat,Mat2, ..., intMat {1st number: layer type {0-gap,1-glazing,2-shade,3-blind,4-bsdf}; 2nd number: which material within each type: it looks into database/matGas.dat, matGlazing, matShade,... and picks the right line}
+2,1,0,0,0,1,1,0,0,0,0,0,0,0,0
