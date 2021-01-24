@@ -2,6 +2,7 @@
 /docs/source
 
 # Byte-compiled / optimized / DLL files
+tests/test_fener/test_integration/test_simple/actual_output
 tests/test_fener/test_integration/test_simple/workDir
 tests/test_fener/test_integration/test_simple/input/Franhour*.*
 
