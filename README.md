@@ -34,7 +34,7 @@ carefully before proceeding.
    [CentOS](https://www.centos.org/). For further information see
    [Installing Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
 3. Clone the source code by running
-   `git clone git@gitlab.cc-asp.fraunhofer.de:ise621/fener.git` and navigate
+   `git clone https://github.com/bbuenoun/Fener.git` and navigate
    into the new directory `fener` by running `cd fener`.
 
 #### With Docker and GNU Make (the easy way)
@@ -111,7 +111,7 @@ In a nutshell, you do the following:
    describes the changes.
 1. `git push -u origin feature-x` (or just `git push` on subsequent changes):
    Push the feature branch to the remote repository.
-1. Open [Fener's GitLab](https://gitlab.cc-asp.fraunhofer.de/ise621/fener) in
+1. Open [Fener's GitHub](https://github.com/bbuenoun/Fener) in
    the browser and create a merge request for the pushed branch marking the
    source branch to be deleted after successful merge and possibly linking the
    request to related issues. If the merge request is still work in progress,
@@ -119,7 +119,7 @@ In a nutshell, you do the following:
 1. Add a changelog entry for your merge request, do some further changes `git
     add .` them, `git commit -m '...'` them, and `git push` them.
 1. Once the feature is finished, on
-   [Fener's GitLab](https://gitlab.cc-asp.fraunhofer.de/ise621/fener)
+   [Fener's GitHub](https://github.com/bbuenoun/Fener)
    remove the prefix 'WIP' from the merge request's title, ask for it to be
    reviewed, and, once it has been approved, merge it.
 
@@ -155,7 +155,7 @@ In a nutshell, you do the following:
 This way of working with `git` is known as the [Gitflow
 workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow)
 which you should internalize. You should also
-* read excerpts of [Get started with GitLab](https://docs.gitlab.com/ee/intro/),
+* read excerpts of [Get started with GitHub](https://docs.github.com/en/github/getting-started-with-github/),
 * familiarize yourself with [Semantic Versioning](https://semver.org/),
 * know how to [Keep a changelog](https://keepachangelog.com/en/1.0.0/),
 * learn [How to Write a Git Commit Message](https://chris.beams.io/posts/git-commit/),
@@ -173,8 +173,7 @@ Hot-fixes are developed in their own branches based on `master` and merged into
 into `master`. Each hot-fix and normal release is tagged with a version.
 
 Each feature and hot-fix branch has an accompanying merge request, which,
-when feasible, is linked to one or multiple
-[issues as single sources of truth](https://about.gitlab.com/blog/2016/03/08/gitlab-tutorial-its-all-connected/).
+when feasible, is linked to one or multiple.
 Before a merge request is accepted, it is reviewed to make sure that the
 changes are properly implemented, well tested, and a changelog entry has
 been added.
@@ -204,5 +203,5 @@ been added.
 - [Keep a changelog](https://keepachangelog.com/en/1.0.0/)
 ### Do what?
 - [Make a README](https://www.makeareadme.com/)
-- [Get started with GitLab](https://docs.gitlab.com/ee/intro/)
+- [Get started with GitHub](https://docs.github.com/en/github/getting-started-with-github/)
 - View HDR files: Use the image viewer `ximage` that comes with radiance.
