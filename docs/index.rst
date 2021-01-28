@@ -7,6 +7,8 @@ Welcome to Fener's documentation!
 
    getting_started.rst
 
+   manual.rst
+
    source/modules.rst
 
 .. .. autosummary::
