@@ -153,19 +153,24 @@ def main(opts, config):
     )  # deg
     dayHour = sum(x > 0 for x in sunAltitude)
     # ----------------------------------------------------
+    if opts.thermComf or opts.shoeBox or opts.geo or opts.ep:
+        construction_thickness = 0.15
+        room_length = config.length + 2 * construction_thickness
+        room_width = config.width + 2 * construction_thickness
+        room_height = config.height + 2 * construction_thickness
     if opts.shoeBox:
         geometry.shoeBox(
             config.surf_path,
             config.rotAng,
-            config.length,
-            config.width,
-            config.height,
-            config.thickSouth,
-            config.thickEast,
-            config.thickNorth,
-            config.thickWest,
-            config.thickCeiling,
-            config.thickFloor,
+            room_length,
+            room_width,
+            room_height,
+            construction_thickness,
+            construction_thickness,
+            construction_thickness,
+            construction_thickness,
+            construction_thickness,
+            construction_thickness,
             config.albWall,
             config.albCeiling,
             config.albFloor,
@@ -502,11 +507,11 @@ def main(opts, config):
                     config.photosensHeight,
                     config.gridXOffset,
                     config.gridYOffset,
-                    config.thickSouth,
-                    config.thickEast,
-                    config.thickNorth,
-                    config.thickWest,
-                    config.thickFloor,
+                    construction_thickness,
+                    construction_thickness,
+                    construction_thickness,
+                    construction_thickness,
+                    construction_thickness,
                     surf[config.floor],
                     config.workDir_path,
                 )
@@ -1438,15 +1443,15 @@ def main(opts, config):
                 # Mean radiant temperature for every occupant position (5 positions)
                 tRad[:, it] = thermalComfort.tempRadSimp(
                     tWalls[:, it],
-                    config.length,
-                    config.width,
-                    config.height,
-                    config.thickSouth,
-                    config.thickEast,
-                    config.thickNorth,
-                    config.thickWest,
-                    config.thickFloor,
-                    config.thickCeiling,
+                    room_length,
+                    room_width,
+                    room_height,
+                    construction_thickness,
+                    construction_thickness,
+                    construction_thickness,
+                    construction_thickness,
+                    construction_thickness,
+                    construction_thickness,
                 )
                 # Predicted mean value
                 pmv[:, it] = thermalComfort.pmvSimp(
@@ -1816,15 +1821,15 @@ def main(opts, config):
             conWinVect,
             conWin,
             config.bsdfSys_path,
-            config.length,
-            config.width,
-            config.height,
-            config.thickSouth,
-            config.thickEast,
-            config.thickNorth,
-            config.thickWest,
-            config.thickCeiling,
-            config.thickFloor,
+            room_length,
+            room_width,
+            room_height,
+            construction_thickness,
+            construction_thickness,
+            construction_thickness,
+            construction_thickness,
+            construction_thickness,
+            construction_thickness,
             config.albWall,
             config.albCeiling,
             config.albFloor,
