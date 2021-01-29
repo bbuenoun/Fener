@@ -11,7 +11,7 @@ def parse(config_path, options):
     parser.read(config_path)
     config = Config()
     _add_simulation_variables(parser, config)  # adds `numConWin`
-    _add_geometry_variables(parser, config, options)
+    _add_geometry_variables(parser, config, options, config_path)
     _add_lighting_schedule_variables(parser, config, options)
     _add_daylighting_variables(parser, config, options, config.numConWin)
     _add_glare_variables(parser, config, options, config.numConWin)
@@ -41,7 +41,7 @@ def _add_simulation_variables(parser, config):
     config.numConWin = parser.getint("VARIABLES", "numConWin")
 
 
-def _add_geometry_variables(parser, config, options):
+def _add_geometry_variables(parser, config, options, config_path):
     config.surf_path = parser.get("PATHS", "surf")
     config.win_path = parser.get("PATHS", "win")
     config.frame_path = parser.get("PATHS", "frame")
@@ -52,14 +52,12 @@ def _add_geometry_variables(parser, config, options):
         config.height = parser.getfloat("VARIABLES", "height")
         config.rotAng = parser.getfloat("VARIABLES", "rotAng")
     if options.shoeBox or options.ep:
+        with open(config_path,"r") as config_file:
+            for line in config_file:
+                if "thickSouth" in line:
+                    raise TypeError("The shoe-box geometry definition has changed in Fener. Do not specify wall thicknesses and use the dimensions of the inside perimeter")
         config.length = parser.getfloat("VARIABLES", "length")
         config.width = parser.getfloat("VARIABLES", "width")
-        config.thickSouth = parser.getfloat("VARIABLES", "thickSouth")
-        config.thickEast = parser.getfloat("VARIABLES", "thickEast")
-        config.thickNorth = parser.getfloat("VARIABLES", "thickNorth")
-        config.thickWest = parser.getfloat("VARIABLES", "thickWest")
-        config.thickCeiling = parser.getfloat("VARIABLES", "thickCeiling")
-        config.thickFloor = parser.getfloat("VARIABLES", "thickFloor")
         config.albWall = parser.getfloat("VARIABLES", "albWall")
         config.albCeiling = parser.getfloat("VARIABLES", "albCeiling")
         config.albFloor = parser.getfloat("VARIABLES", "albFloor")
@@ -162,12 +160,6 @@ def _add_thermal_variables(parser, config, options, numConWin):
             config.height = parser.getfloat("VARIABLES", "height")
             config.length = parser.getfloat("VARIABLES", "length")
             config.width = parser.getfloat("VARIABLES", "width")
-            config.thickSouth = parser.getfloat("VARIABLES", "thickSouth")
-            config.thickEast = parser.getfloat("VARIABLES", "thickEast")
-            config.thickNorth = parser.getfloat("VARIABLES", "thickNorth")
-            config.thickWest = parser.getfloat("VARIABLES", "thickWest")
-            config.thickCeiling = parser.getfloat("VARIABLES", "thickCeiling")
-            config.thickFloor = parser.getfloat("VARIABLES", "thickFloor")
     else:
         config.iniTemp = 300
 

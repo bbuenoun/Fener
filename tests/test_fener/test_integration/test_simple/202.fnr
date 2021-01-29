@@ -144,24 +144,12 @@ minIllum = 300
 # --------------------------------------
 # Building orientation (relative to true north {deg}, clockwise is negative)
 rotAng = 0.
-# Zone length (East-West Axis {m}) (outer perimeter)                 
-length = 4.3
-# Zone width (North-South Axis {m}) (outer perimeter)                
-width = 5.3
+# Zone length (East-West Axis {m}) (inside perimeter)                 
+length = 4
+# Zone width (North-South Axis {m}) (inside perimeter)                
+width = 5
 # Ceiling Height {m}               
-height = 3.3
-# Thickness southWall {m} 
-thickSouth = 0.15
-# Thickness eastWall {m} 
-thickEast = 0.15 
-# Thickness northWall {m} 
-thickNorth = 0.15 
-# Thickness westWall {m} 
-thickWest = 0.15 
-# Thickness ceiling {m} 
-thickCeiling = 0.15 
-# Thickness floor {m} 
-thickFloor = 0.15      
+height = 3   
 # Wall albedo
 albWall = 0.5
 # Ceiling albedo
