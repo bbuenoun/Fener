@@ -115,7 +115,7 @@ Input Data File
 The :file:`config` file is the input data file of Fener. Config files are located in the directory :file:`config.fnr` in the main folder of the program. It is composed of two sections: :file:`PATHS` and :file:`VARIABLES`. It may include comments, prefixed by the character #. Unless otherwise indicated, units are always IS (e.g. m, K, W, etc.). The inputs required by each program option are indicated below.
 
 :file:`PATHS`
-This section of the configuration file tells the program which directories to search for files in which multidimensional inputs are defined. In \textbf{Fener}, multidimensional inputs are always defined in text files. For example, the construction of a wall is a multidimensional input variable that contains the material indexes for each layer of the wall. Multidimensional inputs are the following:
+This section of the configuration file tells the program which directories to search for files in which multidimensional inputs are defined. In Fener, multidimensional inputs are always defined in text files. For example, the construction of a wall is a multidimensional input variable that contains the material indexes for each layer of the wall. Multidimensional inputs are the following:
 
 :file:`meteo` 
 Meteorological information: air temperature, direct normal solar irradiation, diffuse horizontal solar irradiation, incoming longwave radiation and wind speed.
@@ -291,13 +291,13 @@ Y-offset for photosensor grid (distance from the inner surface of south and nort
 Building orientation (relative to true north {deg}, clockwise is negative)
 
 :file:`length`
-Zone length (East-West Axis [m]) (outer perimeter). :file:`-shoeBox`              
+Zone length (East-West Axis [m]) (indoor perimeter). :file:`-shoeBox`              
 
 :file:`width`
-Zone width (North-South Axis [m]) (outer perimeter). :file:`-shoeBox`                
+Zone width (North-South Axis [m]) (indoor perimeter). :file:`-shoeBox`                
 
 :file:`height`
-Ceiling Height [m] (outer perimeter). :file:`-shoeBox`           
+Ceiling Height [m] (indoor perimeter). :file:`-shoeBox`           
       
 :file:`albWall`
 Wall albedo. :file:`-shoeBox`
@@ -363,10 +363,60 @@ Other Input Files
 Meteorological data
 -----------------
 
+The meteorological data file used in Fener simulations must be in :file:`.epw` format (format dictionary is decribed in :file:`http://apps1.eere.energy.gov/buildings/energyplus/pdfs/auxiliaryprograms.pdf`). Available meteorological files for different sites around the world can be found here:
+:file:`http://apps1.eere.energy.gov/buildings/energyplus/weatherdata_about.cfm`
+
+Whenever a new meteorological file is used, new files must be generated for the simulations through the option :file:`-meteo`. The files generated are the following: 
+
+A weather file in :file:`.wea` format by the command::
+
+   > epw2wea meteo_path/meteo.epw meteo_path/meteo.wea
+
+Annual matrices of sky patch values using the Perez all-weather model for the visible and the solar range, respectively, by the commands::
+
+   > gendaymtx -m 4 -h -g gAlb gAlb gAlb meteo/meteo.wea > meteo/meteoVis.smx
+   > gendaymtx -m 4 -O1 -h -g gAlb gAlb gAlb meteo/meteo.wea > meteo/meteoSol.smx
+
+where :file:`gAlb` is the ground albedo.
+A file of hourly values of solar altitude and azimuth by the command::
+
+   > gensky mm dd hh -a lon -o lat -m tzone
+
+where :file:`mm`, :file:`dd`, :file:`hh` are the month, day and hour of every timestep, and :file:`lon`, :file:`lat` and :file:`tzone` are the site latitude, longitude and standard meridian. The output of this command is passed to a variable from which the solar altitude and azimuth angles are derived.
+
 .. _geometry:
 
 Geometry
 -----------------
+
+In Fener, the geometry information is contained in the following three files whose paths are defined in the config file:
+
+Opaque surfaces (e.g. walls, ceiling, floor, etc.), hereafter referred as :file:`surfaces`.
+
+Window frames, hereafter referred as :file:`frames`.
+
+Window translucent areas, hereafter referred as :file:`windows`.
+
+In order to understand the radiance geometry definition of Fener, the following rules must be observed:
+
+Each geometry input file has one header line not read by the program.
+Every subsequent line of the file refers to a new element, i.e. if the window file has three lines (apart from the header), that means three windows are defined.
+
+The surface file(:file:`surf`) is composed of the following fields: :file:`length, height, thickness, tx, ty, tz, rx (deg), ry (deg), rz(deg), ExtBoundaryCond, svf, exterior albedo, interior albedo and construction`. Each surface is built on coordinates of the origin(0,0,0) and then moved according to its translation (tx, ty, tz) and rotation (rx, ry, rz) parameters.
+
+The frame file(:file:`frame`) is composed of the following fields: :file:`length (m), height (m), thickness (m), surface, x-offset (m), z-offset (m), out reveal (m), U-value, exterior albedo, interior albedo and svf`. The field :file:`surface` indicates the ID number of the containing surface. The fields :file:`x-offset` and :file:`z-offset` define the position of the frame with respect to the lower-left corner of the surface (from outside). The field :file:`outside reveal` defines the position of the frame with respect to the outer plane of the surface. 
+
+The window file(:file:`win`) is composed of the following fields: :file:`length (m), height (m), frame, x-offset (m), z-offset (m), out reveal(m), svf and construction`. The field :file:`frame` indicates the ID number of the containing frame. The fields :file:`x-offset` and :file:`z-offset` define the position of the window with respect to the lower-left corner of the frame (from outside). The field :file:`outside reveal` defines the position of the window with respect to the outer plane of the surface. A window element is considered infinitely thin.  
+
+Each geometry input file is constructed as a 2D-array during simulation, exclusive header line. 
+
+Each line of array refers a new element and each column of array indicates respective field(sequence is referred from header line). For example, :file:`"surfaces[1,3]"` indicates the :file:`"tx"`  of the second line in :file:`surf` file (except header line).
+
+Windows are contained in frames, and frames are contained in surfaces. Therefore, translation and rotation parameters defined for one surface also affect the frames and windows contained in that surface. 
+
+This geometry information is used by the program to generate a Radiance geometry in the :file:`workDir` folder especified in the config file. The program also creates a network of irradiance sensor points around the surfaces (if :file:`-therm`) and a grid of horizontal illuminance sensor points (if :file:`-grid`). New three-phase method matrices are generated in the :file:`workDir` folder. The option :file:`-geo` deletes all the previous files in the :file:`workDir` folder. 
+
+The :file:´-shoeBox` option can be used to create the file :file:`surf` as a rotatable rectangular shoe-box space (indoor dimensions provided). Note that the :file:`frame` and :file:`win` files must still be manually created as described above.
 
 .. _material_database:
 
