@@ -187,15 +187,18 @@ def main(opts, config):
             config.conCeiling,
             config.conFloor,
         )
-    surfVect = atleast_2d(genfromtxt(
-        config.surf_path, skip_header=1, delimiter=","))
-    winVect = atleast_2d(genfromtxt(
-        config.win_path, skip_header=1, delimiter=","))
-    frameVect = atleast_2d(genfromtxt(
-        config.frame_path, skip_header=1, delimiter=","))
-    numWin = winVect.shape[0]
-    numFrame = frameVect.shape[0]
-    numSurf = surfVect.shape[0]
+    if opts.direct:
+        numWin = config.numWin
+    else:
+        surfVect = atleast_2d(genfromtxt(
+            config.surf_path, skip_header=1, delimiter=","))
+        winVect = atleast_2d(genfromtxt(
+            config.win_path, skip_header=1, delimiter=","))
+        frameVect = atleast_2d(genfromtxt(
+            config.frame_path, skip_header=1, delimiter=","))
+        numWin = winVect.shape[0]
+        numFrame = frameVect.shape[0]
+        numSurf = surfVect.shape[0]
     # ----------------------------------------------------
     if opts.mask:
         obstMask = genfromtxt(config.obstMask_path,
@@ -376,82 +379,82 @@ def main(opts, config):
         calorim = variables.calorim(config.numConWin, config.calorim_path)
     # ----------------------------------------------------
     conIndex = zeros([numWin, totHour], int)
-    for i in range(numWin):
-        conIndex[i, 0] = int(winVect[i, 7])
-    # ----------------------------------------------------
-    surf = ndarray((numSurf,), dtype=object)
-    for i in range(numSurf):
-        if opts.therm:
-            if opts.iso:
-                surf[i] = elements.surf(
-                    surfVect[i, :], frameVect, i, 1, conOpaq, matOpaq, config.iniTemp, 1
+    if not opts.direct:
+        for i in range(numWin):
+            conIndex[i, 0] = int(winVect[i, 7])
+        surf = ndarray((numSurf,), dtype=object)
+        for i in range(numSurf):
+            if opts.therm:
+                if opts.iso:
+                    surf[i] = elements.surf(
+                        surfVect[i, :], frameVect, i, 1, conOpaq, matOpaq, config.iniTemp, 1
+                    )
+                else:
+                    surf[i] = elements.surf(
+                        surfVect[i, :], frameVect, i, 1, conOpaq, matOpaq, config.iniTemp
+                    )
+
+            else:
+                surf[i] = elements.surf(surfVect[i, :], frameVect, i)
+        bc = fromiter((c.bc for c in surf), float)
+        areaSurf = fromiter((c.area for c in surf), float)
+        areaRev = fromiter((c.areaRev for c in surf), float)
+        # ----------------------------------------------------
+        frame = ndarray((numFrame,), dtype=object)
+        for i in range(numFrame):
+            if opts.therm or opts.ep:
+                frame[i] = elements.frame(
+                    frameVect[i, :], winVect, surf, i, 1, config.iniTemp
                 )
             else:
-                surf[i] = elements.surf(
-                    surfVect[i, :], frameVect, i, 1, conOpaq, matOpaq, config.iniTemp
-                )
-
-        else:
-            surf[i] = elements.surf(surfVect[i, :], frameVect, i)
-    bc = fromiter((c.bc for c in surf), float)
-    areaSurf = fromiter((c.area for c in surf), float)
-    areaRev = fromiter((c.areaRev for c in surf), float)
-    # ----------------------------------------------------
-    frame = ndarray((numFrame,), dtype=object)
-    for i in range(numFrame):
-        if opts.therm or opts.ep:
-            frame[i] = elements.frame(
-                frameVect[i, :], winVect, surf, i, 1, config.iniTemp
-            )
-        else:
-            frame[i] = elements.frame(frameVect[i, :], winVect, surf, i)
-    frameSurf = fromiter((c.surf for c in frame), int)
-    areaFrame = fromiter((c.area for c in frame), float)
-    # ----------------------------------------------------
-    win = ndarray((numWin,), dtype=object)
-    for i in range(numWin):
-        if opts.therm:
-            if opts.iso:
+                frame[i] = elements.frame(frameVect[i, :], winVect, surf, i)
+        frameSurf = fromiter((c.surf for c in frame), int)
+        areaFrame = fromiter((c.area for c in frame), float)
+        # ----------------------------------------------------
+        win = ndarray((numWin,), dtype=object)
+        for i in range(numWin):
+            if opts.therm:
+                if opts.iso:
+                    win[i] = elements.win(
+                        winVect[i, :],
+                        frame,
+                        thermFlag=True,
+                        iniTemp=config.iniTemp,
+                        tmxs=tmxs,
+                        rmxs=rmxs,
+                        calorim=calorim,
+                        isoFlag=True,
+                        conWinVect=conWinVect,
+                        matGas=matGas,
+                        matGlz=matGlz,
+                        matBSDF=matBSDF,
+                    )
+                else:
+                    win[i] = elements.win(
+                        winVect[i, :],
+                        frame,
+                        thermFlag=True,
+                        iniTemp=config.iniTemp,
+                        tmxs=tmxs,
+                        rmxs=rmxs,
+                        calorim=calorim,
+                    )
+            elif opts.calorim:
                 win[i] = elements.win(
                     winVect[i, :],
                     frame,
-                    thermFlag=True,
-                    iniTemp=config.iniTemp,
-                    tmxs=tmxs,
-                    rmxs=rmxs,
-                    calorim=calorim,
                     isoFlag=True,
+                    iniTemp=config.iniTemp,
                     conWinVect=conWinVect,
                     matGas=matGas,
                     matGlz=matGlz,
                     matBSDF=matBSDF,
                 )
+                if opts.cutOff or opts.mtxCntrl or opts.refeedCntrl or opts.schCntrl:
+                    print("WARNING: the number of layers cannot be dynamically changed")
             else:
-                win[i] = elements.win(
-                    winVect[i, :],
-                    frame,
-                    thermFlag=True,
-                    iniTemp=config.iniTemp,
-                    tmxs=tmxs,
-                    rmxs=rmxs,
-                    calorim=calorim,
-                )
-        elif opts.calorim:
-            win[i] = elements.win(
-                winVect[i, :],
-                frame,
-                isoFlag=True,
-                iniTemp=config.iniTemp,
-                conWinVect=conWinVect,
-                matGas=matGas,
-                matGlz=matGlz,
-                matBSDF=matBSDF,
-            )
-            if opts.cutOff or opts.mtxCntrl or opts.refeedCntrl or opts.schCntrl:
-                print("WARNING: the number of layers cannot be dynamically changed")
-        else:
-            win[i] = elements.win(winVect[i, :], frame)
-    areaWin = fromiter((c.area for c in win), float)
+                win[i] = elements.win(winVect[i, :], frame)
+        areaWin = fromiter((c.area for c in win), float)
     # ----------------------------------------------------
     # virtual calorimeter
     if opts.calorim:
@@ -586,7 +589,7 @@ def main(opts, config):
             genMtx.irrView(opts.c, numWin, numFrame,
                            numSurf, config.workDir_path)
             genMtx.ext(opts.c, numSurf, numFrame, bc, config.workDir_path)
-        elif opts.daylight:
+        elif opts.daylight and not opts.direct:
             genMtx.irrWinBackView(opts.c, numWin, config.workDir_path)
     # ----------------------------------------------------
     # if opts.fpm:
@@ -648,7 +651,8 @@ def main(opts, config):
             numSensor = config.numPhotosensX * config.numPhotosensY
         else:
             numSensor = atleast_2d(
-                genfromtxt(config.illuPts_path, delimiter=" ")
+                genfromtxt("%silluSensor.pts" %
+                           config.workDir_path, delimiter=" ")
             ).shape[0]
     if opts.daylight or opts.df:
         illVmx = variables.vmxIllH(numWin, numSensor, config.workDir_path)
@@ -701,19 +705,20 @@ def main(opts, config):
             config.workDir_path,
             config.workDir_path,
         )
-    elif opts.daylight:
+    elif opts.daylight and not opts.direct:
         irrWinBackVmx, numSensorWin = variables.winBack(
             numWin, config.workDir_path)
     # ----------------------------------------------------
     # initialize outputs
     if opts.daylight or opts.df or opts.mtxCntrl or opts.refeedCntrl:
         ill = matrix(zeros([numSensor, totHour]))
-        illTrans = zeros(totHour)
         if opts.da:
             goodHour = zeros(numSensor)
             da = zeros(numSensor)
             totWorkHour = 0
             directSunHour = zeros(numSensor)
+        if not opts.direct:
+            illTrans = zeros(totHour)
     if opts.rad == "radTpm":
         illRadTpm = matrix(zeros([numSensor, totHour]))
     if opts.df:
@@ -1040,17 +1045,18 @@ def main(opts, config):
                     transpose(skyVis),
                     numWin,
                 )
-                illTrans[it] = solar.illumTrans(
-                    numWin,
-                    numSensorWin,
-                    areaWin,
-                    irrWinBackVmx,
-                    tmxv,
-                    conIndex[:, it],
-                    dmx,
-                    transpose(skyVis),
-                    illTrans[it],
-                )
+                if not opts.direct:
+                    illTrans[it] = solar.illumTrans(
+                        numWin,
+                        numSensorWin,
+                        areaWin,
+                        irrWinBackVmx,
+                        tmxv,
+                        conIndex[:, it],
+                        dmx,
+                        transpose(skyVis),
+                        illTrans[it],
+                    )
             if opts.rad == "radTpm":
                 illRadTpm[:, it] = rad.multiply(
                     opts.c,
@@ -1520,9 +1526,10 @@ def main(opts, config):
             delimiter=",",
             fmt="%1.1f",
         )
-        savetxt(
-            "%s/illTrans.out" % config.output_path, illTrans, delimiter=",", fmt="%1.1f"
-        )  # lux
+        if not opts.direct:
+            savetxt(
+                "%s/illTrans.out" % config.output_path, illTrans, delimiter=",", fmt="%1.1f"
+            )  # lux
     if opts.rad == "radTpm":
         savetxt(
             "%s/illRadTpm.out" % config.output_path,

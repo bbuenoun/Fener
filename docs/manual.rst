@@ -56,6 +56,12 @@ already been created from previous simulations::
 
   > python3 ./src/fener.py {directory_path}/config.fnr -daylight -grid
 
+One can also run a daylight and/or glare calculation for a given geometry in Radiance format. 
+In this case, the geometry can deviate from a shoe-box and be exported from a CAD program. However,
+exported files must be re-edited to comply with Fener naming conventions::
+
+  > python3 ./src/fener.py {directory_path}/config.fnr -c 20 -tpmMtx -daylight -glare -direct
+
 .. _program_options:
 
 Program Options
@@ -102,6 +108,10 @@ Option :file:`-outside` includes an outdoor scene in Radiance format for the Day
 Option :file:`-schCntrl` controls a fenestration system based on a predefined schedule of window construction. The schedule must be specified in the :file:`config.fnr` file.
 
 Option :file:`-mtxCntrl` controls a fenestration system based on a matrix of conditions that depend on internal variables (e.g. indoor temperature, solar radiation on the facade, etc.).
+
+Option :file:`-tpmMtx` generates the three-phase method matrices for a given Radiance scene in the :file:`workDir/` folder. The Radiance scene must comply with Fener naming conventions. Generated files are available for other simulations with the same geometry. This option combined with the option :file:`-direct` provides full flexibility for the scene geometry. It is however limited to daylighting or glare calculations, and scheduled shading control.
+
+Option :file:`-direct` tells the program to use the files in :file:`workDir/` to run a daylighting or glare simulation. The number of required inputs is therefore minimal. This option can be combined with the option :file:`-schCntrl` to simulate a scheduled control strategy. In order to generate the three-phase method matrices for the direct simulation, use the option :file:`-tpmMtx`.
 
 .. _input-data-file:
 
@@ -216,25 +226,25 @@ Begin Day of Month of the simulation.
 End Month of the simulation.         
 
 :file:`endDay` 
-End Day of Month of the simulation.            
-
-:file:`iniDayWeek`
-Day of Week for first of January {1-Monday, 2-Tuesday, ...}          
+End Day of Month of the simulation.                    
 
 :file:`volume`
-Room volume [m3]
+Room volume [m3]. :file:`-therm`
 
 :file:`floorArea`
-Floor area [m2]
+Floor area [m2]. :file:`-therm`
 
 :file:`floor` (e.g. :file:`0`) 
-Floor surface {id of the surface considered to be the floor, 0-first}
+Floor surface {id of the surface considered to be the floor, 0-first}.
 
 :file:`grndAlb`
-Ground albedo.
+Ground albedo. :file:`-meteo`  
+
+:file:`numWin`
+Number of windows. :file:`-direct`  
 
 :file:`numConWin`
-Number of window constructions.
+Number of window constructions. :file:`-mtxCntrl`  
 
 :file:`powerLight`
 Lights Watts per Zone Floor Area [W/m2]. :file:`-therm`            
@@ -361,30 +371,32 @@ Whenever a new meteorological file is used, new files must be generated for the 
 Geometry
 -----------------
 
-In Fener, the geometry information is contained in the following three files whose paths are defined in the config file:
+The full capability of Fener (combined thermal and daylighting calculations and very flexible control strategies) is restricted to a shoe-box geometry. Through the  :file:`-tpmMtx` and  :file:`-direct` options, the program offers the possibility to run a daylighting and/or glare simulation for a Radiance scene saved in the :file:`workDir/` folder. The Radiance scene can have any form and is not restricted to a shoe-box. The scene can be exported from another program but must comply with Fener's naming conventions. The :file:`-tpmMtx` and  :file:`-direct` options are only recommended for experienced Fener users.
 
-Opaque surfaces (e.g. walls, ceiling, floor, etc.), hereafter referred as :file:`surfaces`.
+For a shoe-box geometry, the program offers some built-in tools to simplify the definition of the geometry. In this case, the geometry information is contained in the following three files whose paths are defined in the config file:
 
-Window frames, hereafter referred as :file:`frames`.
+Opaque surfaces (e.g. walls, ceiling, floor, etc.), hereafter referred as :file:`surface`.
 
-Window translucent areas, hereafter referred as :file:`windows`.
+Window frames, hereafter referred as :file:`frame`.
 
-In order to understand the geometry definition of Fener, the following rules must be observed:
+Window translucent areas, hereafter referred as :file:`window`.
+
+The :file:`-shoeBox` option can be used to create the file :file:`surface` as a rotatable rectangular shoe-box space. By using this options, indoor dimensions must be provided and the thickness of the enclosure is assumed to be 0.15 m. Note that the :file:`frame` and :file:`window` files must still be manually created as described below.
+
+In order to understand the :file:`surface`, :file:`frame` and :file:`window` files in Fener, the following rules must be observed:
 
 Each geometry input file has one header line not read by the program.
 Every subsequent line of the file refers to a new element, i.e. if the window file has three lines (apart from the header), that means three windows are defined.
 
-The surface file (:file:`surf`) is composed of the following fields: :file:`length, height, thickness, tx, ty, tz, rx (deg), ry (deg), rz(deg), ExtBoundaryCond, svf, exterior albedo, interior albedo and construction`. Each surface is built on coordinates of the origin(0,0,0) and then moved according to its translation (tx, ty, tz) and rotation (rx, ry, rz) parameters.
+The surface file (:file:`surface`) is composed of the following fields: :file:`length, height, thickness, tx, ty, tz, rx (deg), ry (deg), rz(deg), ExtBoundaryCond, svf, exterior albedo, interior albedo and construction`. Each surface is built on coordinates of the origin(0,0,0) and then moved according to its translation (tx, ty, tz) and rotation (rx, ry, rz) parameters.
 
 The frame file (:file:`frame`) is composed of the following fields: :file:`length (m), height (m), thickness (m), surface, x-offset (m), z-offset (m), out reveal (m), U-value, exterior albedo, interior albedo and svf`. The field :file:`surface` indicates the ID number of the containing surface. The fields :file:`x-offset` and :file:`z-offset` define the position of the frame with respect to the lower-left corner of the surface (from outside). The field :file:`outside reveal` defines the position of the frame with respect to the outer plane of the surface. 
 
-The window file (:file:`win`) is composed of the following fields: :file:`length (m), height (m), frame, x-offset (m), z-offset (m), out reveal(m), svf and construction`. The field :file:`frame` indicates the ID number of the containing frame. The fields :file:`x-offset` and :file:`z-offset` define the position of the window with respect to the lower-left corner of the frame (from outside). The field :file:`outside reveal` defines the position of the window with respect to the outer plane of the surface. A window element is considered infinitely thin.  
+The window file (:file:`window`) is composed of the following fields: :file:`length (m), height (m), frame, x-offset (m), z-offset (m), out reveal(m), svf and construction`. The field :file:`frame` indicates the ID number of the containing frame. The fields :file:`x-offset` and :file:`z-offset` define the position of the window with respect to the lower-left corner of the frame (from outside). The field :file:`outside reveal` defines the position of the window with respect to the outer plane of the surface. A window element is considered infinitely thin.  
 
 Windows are contained in frames, and frames are contained in surfaces. Therefore, translation and rotation parameters defined for one surface also affect the frames and windows contained in that surface. 
 
 This geometry information is used by the program to generate a Radiance geometry in the :file:`workDir` folder especified in the config file. The program also creates a network of irradiance sensor points around the surfaces (if :file:`-therm`) and a grid of horizontal illuminance sensor points (if :file:`-grid`). New three-phase method matrices are generated in the :file:`workDir` folder. The option :file:`-geo` deletes all the previous files in the :file:`workDir` folder. 
-
-The :file:`-shoeBox` option can be used to create the file :file:`surf` as a rotatable rectangular shoe-box space. By using this options, indoor dimensions must be provided and the thickness of the enclosure is assumed to be 0.15 m. Note that the :file:`frame` and :file:`win` files must still be manually created as described above.
 
 .. _material_database:
 
