@@ -10,7 +10,7 @@ def parse(config_path, options):
     parser = ConfigParser()
     parser.read(config_path)
     config = Config()
-    _add_simulation_variables(parser, config)  # adds `numConWin`
+    _add_simulation_variables(parser, config, options)  # adds `numConWin`
     _add_geometry_variables(parser, config, options, config_path)
     _add_lighting_schedule_variables(parser, config, options)
     _add_daylighting_variables(parser, config, options, config.numConWin)
@@ -25,7 +25,7 @@ def parse(config_path, options):
     return config
 
 
-def _add_simulation_variables(parser, config):
+def _add_simulation_variables(parser, config, options):
     config.meteo_path = parser.get("PATHS", "meteo")
     config.lat = parser.getfloat("VARIABLES", "lat")
     config.lon = parser.getfloat("VARIABLES", "lon")
@@ -34,28 +34,37 @@ def _add_simulation_variables(parser, config):
     config.iniDay = parser.getint("VARIABLES", "iniDay")
     config.endMonth = parser.getint("VARIABLES", "endMonth")
     config.endDay = parser.getint("VARIABLES", "endDay")
-    config.iniDayWeek = parser.getint("VARIABLES", "iniDayWeek")
-    config.floor = parser.getint("VARIABLES", "floor")
-    config.grndAlb = parser.getfloat("VARIABLES", "grndAlb")
-    config.floorArea = parser.getfloat("VARIABLES", "floorArea")
-    config.numConWin = parser.getint("VARIABLES", "numConWin")
+    if options.mtxCntrl or options.refeedCntrl or options.optStateCntrl or options.schCntrl:
+        config.numConWin = parser.getint("VARIABLES", "numConWin")
+    else:
+        config.numConWin = 1
+    if not options.direct:
+        config.floor = parser.getint("VARIABLES", "floor")
+    if options.meteo:
+        config.grndAlb = parser.getfloat("VARIABLES", "grndAlb")
+    if options.therm or options.ep or options.iso or options.lightSch:
+        config.floorArea = parser.getfloat("VARIABLES", "floorArea")
+    if options.ep:
+        config.iniDayWeek = parser.getint("VARIABLES", "iniDayWeek")
 
 
 def _add_geometry_variables(parser, config, options, config_path):
-    config.surf_path = parser.get("PATHS", "surf")
-    config.win_path = parser.get("PATHS", "win")
-    config.frame_path = parser.get("PATHS", "frame")
     config.output_path = parser.get("PATHS", "output")
     config.input_path = parser.get("PATHS", "input")
     config.workDir_path = parser.get("PATHS", "workDir")
+    if not options.direct:
+        config.surf_path = parser.get("PATHS", "surf")
+        config.win_path = parser.get("PATHS", "win")
+        config.frame_path = parser.get("PATHS", "frame")
     if options.shoeBox or options.geo or options.ep:
         config.height = parser.getfloat("VARIABLES", "height")
         config.rotAng = parser.getfloat("VARIABLES", "rotAng")
     if options.shoeBox or options.ep:
-        with open(config_path,"r") as config_file:
+        with open(config_path, "r") as config_file:
             for line in config_file:
                 if "thickSouth" in line:
-                    raise TypeError("The shoe-box geometry definition has changed in Fener. Do not specify wall thicknesses and use the dimensions of the inside perimeter")
+                    raise TypeError(
+                        "The shoe-box geometry definition has changed in Fener. Do not specify wall thicknesses and use the dimensions of the inside perimeter")
         config.length = parser.getfloat("VARIABLES", "length")
         config.width = parser.getfloat("VARIABLES", "width")
         config.albWall = parser.getfloat("VARIABLES", "albWall")
@@ -100,33 +109,42 @@ def _add_daylighting_variables(parser, config, options, numConWin):
         config.bsdfSys_path = ndarray((numConWin,), dtype=object)
         for i in range(numConWin):
             config.bsdfSys_path[i] = parser.get("PATHS", "bsdfSys_%i" % i)
+    if options.direct:
+        config.numWin = parser.getint("VARIABLES", "numWin")
+    else:
         if options.fpm:
             config.tensorTree_path = ndarray((numConWin,), dtype=object)
             for i in range(numConWin):
-                config.tensorTree_path[i] = parser.get("PATHS", "tensorTree_%i" % i)
-    if options.daylight or options.df or options.rad == "radTpm":
-        if options.grid:
+                config.tensorTree_path[i] = parser.get(
+                    "PATHS", "tensorTree_%i" % i)
+        if options.daylight or options.df or options.rad == "radTpm":
+            if options.grid:
+                config.numPhotosensX = parser.getint(
+                    "VARIABLES", "numPhotosensX")
+                config.numPhotosensY = parser.getint(
+                    "VARIABLES", "numPhotosensY")
+                config.photosensHeight = parser.getfloat(
+                    "VARIABLES", "photosensHeight")
+                config.gridXOffset = parser.getfloat(
+                    "VARIABLES", "gridXOffset")
+                config.gridYOffset = parser.getfloat(
+                    "VARIABLES", "gridYOffset")
+            else:
+                config.illuPts_path = parser.get("PATHS", "illuPts")
+        if options.da:
             config.numPhotosensX = parser.getint("VARIABLES", "numPhotosensX")
             config.numPhotosensY = parser.getint("VARIABLES", "numPhotosensY")
-            config.photosensHeight = parser.getfloat("VARIABLES", "photosensHeight")
-            config.gridXOffset = parser.getfloat("VARIABLES", "gridXOffset")
-            config.gridYOffset = parser.getfloat("VARIABLES", "gridYOffset")
-        else:
-            config.illuPts_path = parser.get("PATHS", "illuPts")
-    if options.da:
-        config.numPhotosensX = parser.getint("VARIABLES", "numPhotosensX")
-        config.numPhotosensY = parser.getint("VARIABLES", "numPhotosensY")
-        config.startHour = parser.getint("VARIABLES", "startHour")
-        config.endHour = parser.getint("VARIABLES", "endHour")
-        config.minIllum = parser.getint("VARIABLES", "minIllum")
-    if options.mask:
-        config.obstMask_path = parser.get("PATHS", "obstMask")
-    if options.outside:
-        config.outside_path = parser.get("PATHS", "outside")
+            config.startHour = parser.getint("VARIABLES", "startHour")
+            config.endHour = parser.getint("VARIABLES", "endHour")
+            config.minIllum = parser.getint("VARIABLES", "minIllum")
+        if options.mask:
+            config.obstMask_path = parser.get("PATHS", "obstMask")
+        if options.outside:
+            config.outside_path = parser.get("PATHS", "outside")
 
 
 def _add_glare_variables(parser, config, options, numConWin):
-    if options.glare or options.glareSimpl or options.glareFull or options.glareMulti:
+    if (options.glare or options.glareSimpl or options.glareFull or options.glareMulti) and not options.direct:
         config.illuVertPts_path = parser.get("PATHS", "illuVertPts")
     if options.glare or options.glareFull or options.glareMulti:
         config.winRad_path = ndarray((numConWin,), dtype=object)
@@ -136,6 +154,9 @@ def _add_glare_variables(parser, config, options, numConWin):
 
 def _add_thermal_variables(parser, config, options, numConWin):
     if options.therm or options.ep or options.iso:
+        if options.direct:
+            raise TypeError(
+                "The direct Fener calculation cannot be combined with the option -therm")
         config.matOpaq_path = parser.get("PATHS", "matOpaq")
         config.constOpaq_path = parser.get("PATHS", "constOpaq")
         config.infSch_path = parser.get("PATHS", "infSch")
@@ -180,9 +201,12 @@ def _add_matrix_control_variables(parser, config, options):
         if options.refeedCntrl:
             print("WARNING: control algorithm will refeed according to window 0")
         if options.optStateCntrl:
-            print("WARNING: for the optStateCntrl option, windows have to be ordered conIndex = [lowerPartition_win0, lowerPartition_win1,..., upperPartition_win0, upperPartition_win1,...]")
-            config.numWinLowerPartition = parser.getint("VARIABLES", "numWinLowerPartition")
-            config.numWinUpperPartition = parser.getint("VARIABLES", "numWinUpperPartition")
+            print(
+                "WARNING: for the optStateCntrl option, windows have to be ordered conIndex = [lowerPartition_win0, lowerPartition_win1,..., upperPartition_win0, upperPartition_win1,...]")
+            config.numWinLowerPartition = parser.getint(
+                "VARIABLES", "numWinLowerPartition")
+            config.numWinUpperPartition = parser.getint(
+                "VARIABLES", "numWinUpperPartition")
             config.cntrlOpt = parser.getint("VARIABLES", "cntrlOpt")
         config.cntrlMtx_path = parser.get("PATHS", "cntrlMtx")
         config.conDef = parser.getint("VARIABLES", "conDef")
@@ -204,10 +228,13 @@ def _add_klems_variables(parser, config, options, numConWin):
         if config.numBsdfLay > 0:
             config.bsdfLay_file = ndarray((config.numBsdfLay,), dtype=object)
             for i in range(config.numBsdfLay):
-                config.bsdfLay_file[i] = parser.get("PATHS", "bsdfLay_file_%i" % i)
+                config.bsdfLay_file[i] = parser.get(
+                    "PATHS", "bsdfLay_file_%i" % i)
         config.numPanes = parser.getint("VARIABLES", "numPanes")
-        config.absFront_path = ndarray([numConWin, config.numPanes], dtype=object)
-        config.absBack_path = ndarray([numConWin, config.numPanes], dtype=object)
+        config.absFront_path = ndarray(
+            [numConWin, config.numPanes], dtype=object)
+        config.absBack_path = ndarray(
+            [numConWin, config.numPanes], dtype=object)
         for i in range(numConWin):
             for j in range(config.numPanes):
                 config.absFront_path[i, j] = parser.get(
@@ -232,8 +259,10 @@ def _add_ep_variables(parser, config, options, numConWin):
         config.matGas_path = parser.get("PATHS", "matGas")
         config.matBSDF_path = parser.get("PATHS", "matBSDF")
         config.numPanes = parser.getint("VARIABLES", "numPanes")
-        config.absFront_path = ndarray([numConWin, config.numPanes], dtype=object)
-        config.absBack_path = ndarray([numConWin, config.numPanes], dtype=object)
+        config.absFront_path = ndarray(
+            [numConWin, config.numPanes], dtype=object)
+        config.absBack_path = ndarray(
+            [numConWin, config.numPanes], dtype=object)
         for i in range(numConWin):
             for j in range(config.numPanes):
                 config.absFront_path[i, j] = parser.get(

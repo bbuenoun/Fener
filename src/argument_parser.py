@@ -68,6 +68,12 @@ def _add_common_arguments(parser):
         help="runs a daylight simulation",
     )
     parser.add_argument(
+        "-direct",
+        action="store_true",
+        default=False,
+        help="runs a daylight or glare simulation directly from the Radiance geometry specified in workDir",
+    )
+    parser.add_argument(
         "-lightSch",
         action="store_true",
         default=False,
@@ -205,7 +211,8 @@ def _add_radiance_subparsers(parser):
 
 
 def _add_radiance_bsdf_arguments(parser):
-    parser.add_argument("hour", nargs="+", help="hour of simulation", type=float)
+    parser.add_argument("hour", nargs="+",
+                        help="hour of simulation", type=float)
     parser.add_argument(
         "-ab", help="ambient bounces (default: '%(default)s')", type=int, default=4
     )
