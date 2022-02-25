@@ -34,7 +34,7 @@ def _add_simulation_variables(parser, config, options):
     config.iniDay = parser.getint("VARIABLES", "iniDay")
     config.endMonth = parser.getint("VARIABLES", "endMonth")
     config.endDay = parser.getint("VARIABLES", "endDay")
-    if options.mtxCntrl or options.refeedCntrl or options.optStateCntrl or options.schCntrl:
+    if options.mtxCntrl or options.refeedCntrl or options.optStateCntrl or options.schCntrl or options.klems:
         config.numConWin = parser.getint("VARIABLES", "numConWin")
     else:
         config.numConWin = 1
